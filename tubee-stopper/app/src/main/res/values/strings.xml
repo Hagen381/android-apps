@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Tubee aus</string>
+    <string name="service_desc">Tippt in der App-Info der gewählten App automatisch auf „Stoppen erzwingen“ und bestätigt mit „OK“ – nur wenn du das Icon „Tubee aus“ antippst. Liest und ändert sonst nichts.</string>
+</resources>
