@@ -8,6 +8,7 @@ als GitHub-Release (`<app>-latest`) veröffentlicht.
 | --- | --- | --- |
 | Puls-Overlay – Garmin-Herzfrequenz als schwebendes Fenster mit Zonenbalken | `puls-overlay/` | [Puls-Overlay.apk](https://github.com/Hagen381/android-apps/releases/download/puls-overlay-latest/Puls-Overlay.apk) |
 | Tubee aus – Icon, das Tubee (oder eine andere gewählte App) per „Stoppen erzwingen“ beendet | `tubee-stopper/` | [Tubee-Stopper.apk](https://github.com/Hagen381/android-apps/releases/download/tubee-stopper-latest/Tubee-Stopper.apk) |
+| Regenradar Samui – Widget mit dem TMD-Radarfilm (Surat Thani), Ausschnitt Koh Samui, aktualisiert alle 15 Min. | `regenradar-samui/` | [Regenradar-Samui.apk](https://github.com/Hagen381/android-apps/releases/download/regenradar-samui-latest/Regenradar-Samui.apk) |
 
 ## Puls-Overlay – Einrichtung
 1. Garmin-Uhr: Einstellungen › Gesundheit & Wellness › Herzfrequenz am Handgelenk ›
