@@ -39,6 +39,15 @@ class RadarWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params) 
                 readTimeout = 60_000
                 setRequestProperty("User-Agent", "RegenradarSamui/1.0 (Android widget)")
                 useCaches = false
+                // Spart Daten und Akku: der Server schickt nur dann neue Bilder, wenn es welche gibt
+                val known = prefs.getLong("lastModified", 0L)
+                if (known > 0 && framesDir(applicationContext).listFiles()?.isNotEmpty() == true) ifModifiedSince = known
+            }
+            if (conn.responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
+                conn.disconnect()
+                prefs.edit().putLong("checked", System.currentTimeMillis()).putString("error", null).apply()
+                RadarWidget.renderAll(applicationContext)
+                return Result.success()
             }
             val lastModified = conn.lastModified
             val bytes = conn.inputStream.use { it.readBytes() }

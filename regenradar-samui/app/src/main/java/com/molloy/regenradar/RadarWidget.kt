@@ -32,16 +32,26 @@ class RadarWidget : AppWidgetProvider() {
         private const val PERIODIC = "radar-periodic"
         private const val ONCE = "radar-once"
 
-        private val netConstraint = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        /** Einstellungen: Abstand in Minuten (15/30/60) und „nur im WLAN“. */
+        fun intervalMinutes(ctx: Context) = ctx.getSharedPreferences("radar", Context.MODE_PRIVATE).getInt("interval", 30)
+        fun wifiOnly(ctx: Context) = ctx.getSharedPreferences("radar", Context.MODE_PRIVATE).getBoolean("wifiOnly", false)
 
-        fun schedule(ctx: Context) {
-            val req = PeriodicWorkRequestBuilder<RadarWorker>(15, TimeUnit.MINUTES)
-                .setConstraints(netConstraint).build()
-            WorkManager.getInstance(ctx).enqueueUniquePeriodicWork(PERIODIC, ExistingPeriodicWorkPolicy.KEEP, req)
+        private fun constraints(ctx: Context, periodic: Boolean) = Constraints.Builder()
+            .setRequiredNetworkType(if (wifiOnly(ctx)) NetworkType.UNMETERED else NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(periodic)   // automatisch pausieren, wenn der Akku knapp ist
+            .build()
+
+        /** @param replace true, wenn sich die Einstellungen geändert haben */
+        fun schedule(ctx: Context, replace: Boolean = false) {
+            val req = PeriodicWorkRequestBuilder<RadarWorker>(intervalMinutes(ctx).toLong(), TimeUnit.MINUTES)
+                .setConstraints(constraints(ctx, true)).build()
+            WorkManager.getInstance(ctx).enqueueUniquePeriodicWork(
+                PERIODIC, if (replace) ExistingPeriodicWorkPolicy.UPDATE else ExistingPeriodicWorkPolicy.KEEP, req
+            )
         }
 
         fun refreshNow(ctx: Context) {
-            val req = OneTimeWorkRequestBuilder<RadarWorker>().setConstraints(netConstraint).build()
+            val req = OneTimeWorkRequestBuilder<RadarWorker>().setConstraints(constraints(ctx, false)).build()
             WorkManager.getInstance(ctx).enqueueUniqueWork(ONCE, ExistingWorkPolicy.REPLACE, req)
         }
 
@@ -111,7 +121,9 @@ class RadarWidget : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         schedule(context)
         renderAll(context)
-        refreshNow(context)
+        // Nur neu laden, wenn der letzte Abruf länger als 10 Minuten her ist (spart Akku beim Neustart des Launchers)
+        val checked = context.getSharedPreferences("radar", Context.MODE_PRIVATE).getLong("checked", 0L)
+        if (System.currentTimeMillis() - checked > 10 * 60_000) refreshNow(context)
     }
 
     override fun onDisabled(context: Context) {
