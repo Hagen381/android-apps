@@ -60,6 +60,11 @@ class RadarWidget : AppWidgetProvider() {
             val mgr = AppWidgetManager.getInstance(ctx)
             val ids = mgr.getAppWidgetIds(ComponentName(ctx, RadarWidget::class.java))
             if (ids.isEmpty()) return
+            val open = PendingIntent.getActivity(
+                ctx, 0,
+                Intent(Intent.ACTION_VIEW, Uri.parse(RadarWorker.PAGE_URL)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
             val views = RemoteViews(ctx.packageName, R.layout.widget)
             views.removeAllViews(R.id.flipper)
 
@@ -68,6 +73,7 @@ class RadarWidget : AppWidgetProvider() {
                 val bmp = BitmapFactory.decodeFile(f.absolutePath) ?: continue
                 val frame = RemoteViews(ctx.packageName, R.layout.frame)
                 frame.setImageViewBitmap(R.id.frame, bmp)
+                frame.setOnClickPendingIntent(R.id.frame, open)   // Tipp aufs Bild -> Seite im Browser
                 views.addView(R.id.flipper, frame)
             }
 
@@ -82,13 +88,11 @@ class RadarWidget : AppWidgetProvider() {
             }
             views.setTextViewText(R.id.stamp, stamp)
 
-            val open = PendingIntent.getActivity(
-                ctx, 0, Intent(Intent.ACTION_VIEW, Uri.parse(RadarWorker.PAGE_URL)), PendingIntent.FLAG_IMMUTABLE
-            )
             val refresh = PendingIntent.getBroadcast(
                 ctx, 1, Intent(ctx, RadarWidget::class.java).setAction(ACTION_REFRESH),
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
+            views.setOnClickPendingIntent(R.id.root, open)
             views.setOnClickPendingIntent(R.id.flipper, open)
             views.setOnClickPendingIntent(R.id.stamp, refresh)
 
@@ -102,10 +106,12 @@ class RadarWidget : AppWidgetProvider() {
                     BitmapFactory.decodeFile(f.absolutePath)?.let { bmp ->
                         val frame = RemoteViews(ctx.packageName, R.layout.frame)
                         frame.setImageViewBitmap(R.id.frame, bmp)
+                        frame.setOnClickPendingIntent(R.id.frame, open)
                         single.addView(R.id.flipper, frame)
                     }
                 }
                 single.setTextViewText(R.id.stamp, stamp)
+                single.setOnClickPendingIntent(R.id.root, open)
                 single.setOnClickPendingIntent(R.id.flipper, open)
                 single.setOnClickPendingIntent(R.id.stamp, refresh)
                 mgr.updateAppWidget(ids, single)
