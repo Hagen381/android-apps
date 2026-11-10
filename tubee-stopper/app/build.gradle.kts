@@ -15,7 +15,24 @@ android {
         versionName = "1.1"
     }
 
+    // Fester Schlüssel aus dem GitHub-Secret SIGNING_KEYSTORE_B64 (der Workflow legt ihn als Datei ab).
+    // Nur mit gleichem Schlüssel installiert Android Updates über die vorhandene App.
+    val keystorePath = System.getenv("SIGNING_KEYSTORE_PATH")
+    signingConfigs {
+        if (keystorePath != null) {
+            create("molloy") {
+                storeFile = file(keystorePath)
+                storePassword = "android"
+                keyAlias = "molloy"
+                keyPassword = "android"
+            }
+        }
+    }
+
     buildTypes {
+        getByName("debug") {
+            if (keystorePath != null) signingConfig = signingConfigs.getByName("molloy")
+        }
         release { isMinifyEnabled = false }
     }
     compileOptions {

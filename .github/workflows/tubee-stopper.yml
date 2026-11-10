@@ -27,6 +27,16 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.14.3"
+      - name: Signierschlüssel bereitstellen
+        env:
+          KS: ${{ secrets.SIGNING_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > "$RUNNER_TEMP/molloy.jks"
+            echo "SIGNING_KEYSTORE_PATH=$RUNNER_TEMP/molloy.jks" >> "$GITHUB_ENV"
+          else
+            echo "::warning::Secret SIGNING_KEYSTORE_B64 fehlt – APK wird mit Zufallsschlüssel signiert, Updates scheitern."
+          fi
       - run: gradle assembleDebug --no-daemon
       - run: cp app/build/outputs/apk/debug/app-debug.apk Tubee-Stopper.apk
       - uses: actions/upload-artifact@v4
