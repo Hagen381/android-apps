@@ -42,7 +42,7 @@
             android:icon="@drawable/ic_moon"
             android:label="Tubee Schlaf"
             android:taskAffinity=".sleep"
-            android:theme="@android:style/Theme.DeviceDefault.Dialog.NoActionBar">
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
