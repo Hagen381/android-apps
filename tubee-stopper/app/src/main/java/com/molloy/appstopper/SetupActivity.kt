@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -48,6 +49,16 @@ class SetupActivity : Activity() {
             startActivity(Intent(this, StopActivity::class.java))
         }
         root.addView(TextView(this).apply {
+            textSize = 15f
+            setPadding(0, pad, 0, 0)
+            text = "Schlaftimer (Icon „Tubee Schlaf“)"
+        })
+        root.addView(CheckBox(this).apply {
+            text = "Nach Ablauf die App zusätzlich ganz beenden (klappt nur, wenn der Bildschirm an und entsperrt ist)"
+            isChecked = prefs.getBoolean("killAfterSleep", false)
+            setOnCheckedChangeListener { _, on -> prefs.edit().putBoolean("killAfterSleep", on).apply() }
+        })
+        root.addView(TextView(this).apply {
             textSize = 13f
             setPadding(0, pad, 0, 0)
             text = """
@@ -57,6 +68,7 @@ class SetupActivity : Activity() {
                 • Ist der Schalter ausgegraut („Eingeschränkte Einstellung“): App-Info dieser App öffnen › oben rechts ⋮ › „Eingeschränkte Einstellungen zulassen“, dann Schritt 2 wiederholen.
                 • Danach das Icon „Tubee aus“ auf dem Startbildschirm unter Tubee legen. Ein Tipp beendet Tubee.
                 • Diese Einrichtung erreichst du später über langes Drücken auf das Icon › „Einrichtung“.
+                • Schlaftimer: Icon „Tubee Schlaf“ antippen und Dauer wählen. Am Ende wird es sanft leiser und das Video/die Musik hält an. Langes Drücken auf das Icon › „30 Min.“ oder „60 Min.“ startet sofort. Abbrechen oder verlängern über die Benachrichtigung.
             """.trimIndent()
         })
         setContentView(ScrollView(this).apply { addView(root) })
@@ -101,6 +113,11 @@ class SetupActivity : Activity() {
             .setIcon(Icon.createWithResource(this, R.drawable.ic_stop))
             .setIntent(Intent(this, SetupActivity::class.java).setAction(Intent.ACTION_VIEW))
             .build()
-        try { sm.dynamicShortcuts = listOf(sc) } catch (_: Exception) {}
+        fun sleep(min: Int) = ShortcutInfo.Builder(this, "sleep$min")
+            .setShortLabel("Schlaf $min Min.")
+            .setIcon(Icon.createWithResource(this, R.drawable.ic_moon))
+            .setIntent(Intent(this, SleepActivity::class.java).setAction(Intent.ACTION_VIEW).putExtra("minutes", min))
+            .build()
+        try { sm.dynamicShortcuts = listOf(sc, sleep(30), sleep(60)) } catch (_: Exception) {}
     }
 }

@@ -51,6 +51,18 @@ class ForceStopService : AccessibilityService() {
         if (stage != 0) { handler.removeCallbacks(step); handler.postDelayed(step, 120) }
     }
 
+    /** Vom Schlaftimer: App-Info öffnen und beenden (nur bei entsperrtem Bildschirm sinnvoll). */
+    fun stopApp(pkg: String, appLabel: String) {
+        handler.post {
+            start(appLabel)
+            startActivity(
+                android.content.Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:$pkg"))
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_NO_HISTORY or
+                        android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+            )
+        }
+    }
+
     /** Vom Icon aufgerufen, kurz bevor die App-Info geöffnet wird. */
     fun start(appLabel: String) {
         label = appLabel
