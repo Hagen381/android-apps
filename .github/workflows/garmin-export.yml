@@ -1,0 +1,54 @@
+# Baut die Android-App "Garmin → Tabelle" (Ordner garmin-export/) als APK.
+# Läuft nur, wenn sich diese App ändert.
+name: Android Garmin-Export APK
+
+on:
+  push:
+    paths:
+      - "garmin-export/**"
+      - ".github/workflows/garmin-export.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: garmin-export
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.14.3"
+      - name: Signierschlüssel bereitstellen
+        env:
+          KS: ${{ secrets.SIGNING_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > "$RUNNER_TEMP/molloy.jks"
+            echo "SIGNING_KEYSTORE_PATH=$RUNNER_TEMP/molloy.jks" >> "$GITHUB_ENV"
+          else
+            echo "::warning::Secret SIGNING_KEYSTORE_B64 fehlt – APK wird mit Zufallsschlüssel signiert, Updates scheitern."
+          fi
+      - run: gradle assembleDebug --no-daemon
+      - run: cp app/build/outputs/apk/debug/app-debug.apk Garmin-Export.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: garmin-export-apk
+          path: garmin-export/app/build/outputs/apk/debug/app-debug.apk
+      # Öffentlicher Download-Link (auch direkt vom Handy aus)
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: garmin-export-latest
+          name: Garmin → Tabelle (Android)
+          target_commitish: ${{ github.sha }}
+          prerelease: true
+          body: "APK auf dem Handy herunterladen und installieren (Installation aus unbekannten Quellen erlauben)."
+          files: garmin-export/Garmin-Export.apk
